@@ -66,6 +66,7 @@ const requestHandler = (req, res) => {
             payload: buffer
         };
         chosenHandler(data, (statusCode, payload) => {
+            // res.setHeader('Content-Type', 'application/json');
             res.writeHead(statusCode, {'Content-Type': 'application/json'});
             res.end(JSON.stringify(payload));
         });
