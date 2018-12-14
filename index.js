@@ -4,6 +4,8 @@
  */
 
 const http = require("http");
+const https = require("https");
+const fs = require("fs");
 const url = require("url");
 var StringDecoder = require('string_decoder').StringDecoder;
 
@@ -16,19 +18,33 @@ var StringDecoder = require('string_decoder').StringDecoder;
 // }
 
 //Create an HTTP tunneling proxy
-const serverPropxy = http.createServer((req, res) => {
+const httpServerPropxy = http.createServer((req, res) => {
     requestHandler(req, res);
 });
 
-serverPropxy.listen(3000, onListening);
-
-function onListening() {
-    var addr = serverPropxy.address();
+httpServerPropxy.listen(3000, () => {
+    var addr = httpServerPropxy.address();
     var bind = typeof addr === 'string'
         ? 'pipe ' + addr
         : 'port ' + addr.port;
     console.log('Listening on ' + bind);
-}
+});
+
+//Generate https tokens and pass as an first options arguments to createServer function.
+const httpsServerPropxy = https.createServer({
+    key: fs.readFileSync("./https/key.pem"),
+    cert: fs.readFileSync("./https/cert.pem")
+}, (req, res) => {
+    requestHandler(req, res);
+});
+
+httpsServerPropxy.listen(3001, () => {
+    var addr = httpsServerPropxy.address();
+    var bind = typeof addr === 'string'
+        ? 'pipe ' + addr
+        : 'port ' + addr.port;
+    console.log('Listening on ' + bind);
+});
 
 const requestHandler = (req, res) => {
 
