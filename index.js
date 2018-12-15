@@ -7,7 +7,8 @@ const http = require("http");
 const https = require("https");
 const fs = require("fs");
 const url = require("url");
-var StringDecoder = require('string_decoder').StringDecoder;
+const StringDecoder = require('string_decoder').StringDecoder;
+const config = require("./config");
 
 // const querystring = require('querystring');
 // if (oRequest.url.indexOf('?') >= 0) {
@@ -19,10 +20,10 @@ var StringDecoder = require('string_decoder').StringDecoder;
 
 //Create an HTTP tunneling proxy
 const httpServerPropxy = http.createServer((req, res) => {
-    requestHandler(req, res);
+    unifiedHandler(req, res);
 });
 
-httpServerPropxy.listen(3000, () => {
+httpServerPropxy.listen(config.httpPort, () => {
     var addr = httpServerPropxy.address();
     var bind = typeof addr === 'string'
         ? 'pipe ' + addr
@@ -30,15 +31,15 @@ httpServerPropxy.listen(3000, () => {
     console.log('Listening on ' + bind);
 });
 
-//Generate https tokens and pass as an first options arguments to createServer function.
+//Generate https tokens and pass as first argument(generally called as options) to createServer function.
 const httpsServerPropxy = https.createServer({
     key: fs.readFileSync("./https/key.pem"),
     cert: fs.readFileSync("./https/cert.pem")
 }, (req, res) => {
-    requestHandler(req, res);
+    unifiedHandler(req, res);
 });
 
-httpsServerPropxy.listen(3001, () => {
+httpsServerPropxy.listen(config.httpsPort, () => {
     var addr = httpsServerPropxy.address();
     var bind = typeof addr === 'string'
         ? 'pipe ' + addr
@@ -46,13 +47,13 @@ httpsServerPropxy.listen(3001, () => {
     console.log('Listening on ' + bind);
 });
 
-const requestHandler = (req, res) => {
+const unifiedHandler = (req, res) => {
 
     // parse the url
     let parsedUrl = url.parse(req.url,  true);
 
     // Get the path
-    const path = parsedUrl.pathname.replace(/^\/+|\/+$/g, "");
+    const path = parsedUrl.pathname;
     const trimmedPath = path.replace(/^\/+|\/+$/g, "");
 
     // Get the query string as an object
